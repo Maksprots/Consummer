@@ -1,16 +1,32 @@
 import pika
 import json
+
 class Config:
 	adress = 'localhost'
 	queue_name = 'Main_queue2'
+	path_to_outfile_with_closed_tasks=r'C:\Users\maksl\Desktop\consumer\closed_tasks.txt'
 
 
 class Consummer:
 	@classmethod
 	def parsing_message(cls, ch, method, properties, message):
 		message_json = json.loads(message.decode())
+
 		
-		print(message_json)
+		if message_json["type"] == "task" and message_json['data']['status']['is_closed']   :
+			# если сообщение про таск и таск закрыли
+			with open(Config.path_to_outfile_with_closed_tasks, 'r+') as closed_tasks:
+				into_file = closed_tasks.read()
+				into_file+=into_file + str(message_json)
+				closed_tasks.write(into_file)
+				closed_tasks.close()
+				
+				
+				
+				
+				
+		
+		
 	
 	
 	
@@ -21,7 +37,7 @@ class Consummer:
 		connection = pika.BlockingConnection(pika.ConnectionParameters(host=Config.adress))
 		
 		channel = connection.channel()
-		#channel.queue_declare(queue=Config.queue_name)
+		
 		
 		channel.basic_consume(Config.queue_name, Consummer.parsing_message, auto_ack=False)
 		
