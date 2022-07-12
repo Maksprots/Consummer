@@ -1,28 +1,33 @@
+import pika
+import json
 class Config:
-	adress = '127.0.0.1'
-	queue_name = 'taigaQueue'
+	adress = 'localhost'
+	queue_name = 'Main_queue2'
+
+
 class Consummer:
 	@classmethod
-	def callback(cls,ch, method, properties, body):
-		str_body = body.decode()
-		print(str_body)
+	def parsing_message(cls, ch, method, properties, message):
+		message_json = json.loads(message.decode())
 		
+		print(message_json)
+	
+	
+	
+	
 	def __call__(self, *args, **kwargs):
-		import pika
+		
 		
 		connection = pika.BlockingConnection(pika.ConnectionParameters(host=Config.adress))
 		
 		channel = connection.channel()
-		channel.queue_declare(queue=Config.queue_name)
+		#channel.queue_declare(queue=Config.queue_name)
 		
-	
-		channel.basic_consume(Config.queue_name,Consummer.callback,  auto_ack=True)
+		channel.basic_consume(Config.queue_name, Consummer.parsing_message, auto_ack=False)
 		
 		channel.start_consuming()
-		
-		
+
 
 if __name__ == "__main__":
-	
-	consummer= Consummer()
+	consummer = Consummer()
 	consummer()
