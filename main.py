@@ -7,6 +7,7 @@ class Config:
 	adress = '127.0.0.1'
 	queue_name = 'taigaQueue'
 	path_to_outfile_with_closed_tasks = r'closed_tasks.csv'
+	take_completely = True
 
 
 class Consummer:
@@ -38,8 +39,9 @@ class Consummer:
 	def __call__(self, *args, **kwargs):
 		connection = pika.BlockingConnection(pika.ConnectionParameters(host=Config.adress))
 		channel = connection.channel()
-		channel.basic_consume(Config.queue_name, Consummer.parsing_message, auto_ack=True)
+		channel.basic_consume(Config.queue_name, Consummer.parsing_message, auto_ack=Config.take_completely)
 		channel.start_consuming()
+
 
 if __name__ == "__main__":
 	consummer = Consummer()
